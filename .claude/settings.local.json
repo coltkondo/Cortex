@@ -5,7 +5,9 @@
       "Bash(npm install @google/generative-ai)",
       "Bash(npm run typecheck)",
       "Bash(npm install cheerio axios)",
-      "Bash(ls \"c:\\\\Users\\\\d-colt.kondo\\\\Code Assist\\\\Cortex\"/*.md)"
+      "Bash(ls \"c:\\\\Users\\\\d-colt.kondo\\\\Code Assist\\\\Cortex\"/*.md)",
+      "Bash(npm install redis)",
+      "Bash(npm install --save-dev @types/redis)"
     ]
   }
 }

@@ -1,4 +1,5 @@
 import { claude, MODEL, MAX_TOKENS } from './client';
+import { withCache } from '../cache';
 
 export interface FitScoreResult {
   overall_match: number;
@@ -10,6 +11,21 @@ export interface FitScoreResult {
 }
 
 export async function analyzeFit(
+  resumeText: string,
+  jobDescription: string,
+  companyStage: string
+): Promise<FitScoreResult> {
+  // Use caching to avoid duplicate AI calls
+  return withCache(
+    'fit-score',
+    async () => analyzeFitInternal(resumeText, jobDescription, companyStage),
+    resumeText,
+    jobDescription,
+    companyStage
+  );
+}
+
+async function analyzeFitInternal(
   resumeText: string,
   jobDescription: string,
   companyStage: string

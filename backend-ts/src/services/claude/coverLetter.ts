@@ -1,6 +1,26 @@
 import { claude, MODEL, MAX_TOKENS } from './client';
+import { withCache } from '../cache';
 
 export async function generateCoverLetter(
+  resumeText: string,
+  jobDescription: string,
+  company: string,
+  role: string,
+  tone: string = 'professional'
+): Promise<string> {
+  // Use caching to avoid duplicate AI calls
+  return withCache(
+    'cover-letter',
+    async () => generateCoverLetterInternal(resumeText, jobDescription, company, role, tone),
+    resumeText,
+    jobDescription,
+    company,
+    role,
+    tone
+  );
+}
+
+async function generateCoverLetterInternal(
   resumeText: string,
   jobDescription: string,
   company: string,

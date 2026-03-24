@@ -1,6 +1,20 @@
 import { claude, MODEL, MAX_TOKENS } from './client';
+import { withCache } from '../cache';
 
 export async function generateBullets(
+  resumeText: string,
+  jobDescription: string
+): Promise<string[]> {
+  // Use caching to avoid duplicate AI calls
+  return withCache(
+    'bullets',
+    async () => generateBulletsInternal(resumeText, jobDescription),
+    resumeText,
+    jobDescription
+  );
+}
+
+async function generateBulletsInternal(
   resumeText: string,
   jobDescription: string
 ): Promise<string[]> {

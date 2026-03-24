@@ -1,4 +1,5 @@
 import { claude, MODEL, MAX_TOKENS } from './client';
+import { withCache } from '../cache';
 
 export interface InterviewPrepResult {
   behavioral_questions: string[];
@@ -9,6 +10,23 @@ export interface InterviewPrepResult {
 }
 
 export async function generateInterviewPrep(
+  resumeText: string,
+  jobDescription: string,
+  company: string,
+  role: string
+): Promise<InterviewPrepResult> {
+  // Use caching to avoid duplicate AI calls
+  return withCache(
+    'interview-prep',
+    async () => generateInterviewPrepInternal(resumeText, jobDescription, company, role),
+    resumeText,
+    jobDescription,
+    company,
+    role
+  );
+}
+
+async function generateInterviewPrepInternal(
   resumeText: string,
   jobDescription: string,
   company: string,

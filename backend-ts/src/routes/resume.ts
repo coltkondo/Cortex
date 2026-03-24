@@ -3,12 +3,13 @@ import multer from 'multer';
 import { AppDataSource } from '../config/database';
 import { Resume } from '../models/Resume';
 import { extractTextFromPDF } from '../utils/pdfParser';
+import { uploadRateLimiter } from '../config/rateLimiting';
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Upload resume
-router.post('/upload', upload.single('file'), async (req, res) => {
+router.post('/upload', uploadRateLimiter, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ detail: 'No file uploaded' });

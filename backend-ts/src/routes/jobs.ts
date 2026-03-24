@@ -2,8 +2,12 @@ import express from 'express';
 import { AppDataSource } from '../config/database';
 import { Job } from '../models/Job';
 import { fetchJobDescriptionFromURL } from '../utils/urlFetcher';
+import { generalRateLimiter } from '../config/rateLimiting';
 
 const router = express.Router();
+
+// Apply general rate limiting to all job endpoints
+router.use(generalRateLimiter);
 
 // Fetch job description from URL
 router.post('/fetch-from-url', async (req, res) => {
