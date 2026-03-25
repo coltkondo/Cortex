@@ -377,7 +377,7 @@ REDIS_ENABLED=true
 - **CLAUDE.md** - Living documentation (patterns, standards, lessons learned)
 - **SCALING_RISKS.md** - Architecture analysis for 10K DAU
 - **VERSION_HISTORY.md** - This file (version updates)
-- **docs/spec.md** - Original project specification
+- **docs/PROJECT_STRUCTURE.md** - Detailed project structure guide
 
 ### Archived Documentation (Historical Reference)
 Previous versions included detailed audit reports and cleanup summaries. These have been consolidated into this version history:

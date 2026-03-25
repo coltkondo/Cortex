@@ -141,7 +141,6 @@ cortex/
 │   └── package.json
 │
 ├── docs/                     # Documentation
-│   ├── spec.md               # Original project spec
 │   └── PROJECT_STRUCTURE.md  # Detailed structure guide
 ├── CLAUDE.md                 # Agent onboarding file
 ├── README.md                 # This file
@@ -237,7 +236,6 @@ MIT
 - **[GETTING_STARTED.md](GETTING_STARTED.md)** - Quick setup guide
 - **[CLAUDE.md](CLAUDE.md)** - Codebase guide for AI agents
 - **[docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md)** - Detailed architecture
-- **[docs/spec.md](docs/spec.md)** - Original project specification
 - **[backend-ts/README.md](backend-ts/README.md)** - Backend documentation
 
 ## Contact

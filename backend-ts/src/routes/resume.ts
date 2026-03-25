@@ -4,6 +4,7 @@ import { AppDataSource } from '../config/database';
 import { Resume } from '../models/Resume';
 import { extractTextFromPDF } from '../utils/pdfParser';
 import { uploadRateLimiter } from '../config/rateLimiting';
+import { analyzeResume } from '../services/claude/resumeAnalysis';
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -45,10 +46,12 @@ router.post('/upload', uploadRateLimiter, upload.single('file'), async (req, res
 router.get('', async (req, res) => {
   try {
     const resumeRepo = AppDataSource.getRepository(Resume);
-    const resume = await resumeRepo.findOne({
-      order: { id: 'DESC' }
+    const resumes = await resumeRepo.find({
+      order: { id: 'DESC' },
+      take: 1
     });
-    res.json(resume || null);
+    const resume = resumes[0] || null;
+    res.json(resume);
   } catch (error: any) {
     console.error('Get resume error:', error);
     res.status(500).json({ detail: error.message });
@@ -63,6 +66,58 @@ router.delete('', async (req, res) => {
     res.json({ message: 'Resume deleted successfully' });
   } catch (error: any) {
     console.error('Delete resume error:', error);
+    res.status(500).json({ detail: error.message });
+  }
+});
+
+// Analyze resume with AI
+router.post('/analyze', async (req, res) => {
+  try {
+    const resumeRepo = AppDataSource.getRepository(Resume);
+    const resumes = await resumeRepo.find({
+      order: { id: 'DESC' },
+      take: 1
+    });
+    const resume = resumes[0];
+
+    if (!resume) {
+      return res.status(404).json({ detail: 'No resume found' });
+    }
+
+    const analysis = await analyzeResume(resume.content);
+    res.json(analysis);
+  } catch (error: any) {
+    console.error('Resume analysis error:', error);
+    res.status(500).json({ detail: error.message });
+  }
+});
+
+// Update resume sections
+router.patch('/sections', async (req, res) => {
+  try {
+    const { experienceSection, skillsSection, educationSection, projectsSection } = req.body;
+
+    const resumeRepo = AppDataSource.getRepository(Resume);
+    const resumes = await resumeRepo.find({
+      order: { id: 'DESC' },
+      take: 1
+    });
+    const resume = resumes[0];
+
+    if (!resume) {
+      return res.status(404).json({ detail: 'No resume found' });
+    }
+
+    // Update sections
+    if (experienceSection !== undefined) resume.experienceSection = experienceSection;
+    if (skillsSection !== undefined) resume.skillsSection = skillsSection;
+    if (educationSection !== undefined) resume.educationSection = educationSection;
+    if (projectsSection !== undefined) resume.projectsSection = projectsSection;
+
+    await resumeRepo.save(resume);
+    res.json(resume);
+  } catch (error: any) {
+    console.error('Update sections error:', error);
     res.status(500).json({ detail: error.message });
   }
 });

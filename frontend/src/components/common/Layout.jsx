@@ -1,67 +1,114 @@
-import { Link, useLocation } from 'react-router-dom'
-import { Home, Kanban, Brain, Github, ExternalLink } from 'lucide-react'
-import Badge from './Badge'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { LayoutDashboard, Briefcase, FileText, LineChart, BookOpen, Brain, Plus } from 'lucide-react'
+import DarkModeToggle from './DarkModeToggle'
+import PremiumButton from './PremiumButton'
 
+/**
+ * Layout - Premium navigation with 5 main sections
+ * Sticky top navbar, glassmorphism, dark mode toggle, CTA button
+ */
 function Layout({ children }) {
   const location = useLocation()
+  const navigate = useNavigate()
 
   const navItems = [
-    { path: '/', label: 'Home', icon: Home },
-    { path: '/pipeline', label: 'Pipeline', icon: Kanban },
+    { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/applications', label: 'Applications', icon: Briefcase },
+    { path: '/resume', label: 'Resume', icon: FileText },
+    { path: '/insights', label: 'Insights', icon: LineChart },
+    { path: '/resources', label: 'Resources', icon: BookOpen },
   ]
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
-      {/* Enhanced Navigation */}
-      <nav className="bg-white shadow-sm border-b sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo and Brand */}
-            <div className="flex items-center space-x-8">
-              <Link to="/" className="flex items-center space-x-3 group">
-                <div className="relative">
-                  <Brain className="h-8 w-8 text-primary-600 group-hover:text-primary-700 transition-colors" />
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                </div>
-                <div>
-                  <span className="text-xl font-bold text-gray-900 group-hover:text-primary-700 transition-colors">
-                    Cortex
-                  </span>
-                  <Badge variant="primary" size="sm" className="ml-2">AI</Badge>
-                </div>
-              </Link>
+  const handleNewAnalysis = () => {
+    // Navigate to home page
+    navigate('/')
 
-              {/* Navigation Links */}
-              <div className="hidden md:flex space-x-1">
-                {navItems.map(({ path, label, icon: Icon }) => {
-                  const isActive = location.pathname === path
-                  return (
-                    <Link
-                      key={path}
-                      to={path}
-                      className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                        isActive
-                          ? 'bg-primary-50 text-primary-700 shadow-sm'
-                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                      }`}
-                    >
-                      <Icon className="h-4 w-4" />
-                      <span>{label}</span>
-                      {isActive && (
-                        <div className="w-1.5 h-1.5 bg-primary-600 rounded-full"></div>
-                      )}
-                    </Link>
-                  )
-                })}
+    // Wait for navigation to complete, then scroll to appropriate section
+    setTimeout(() => {
+      // Check if user has resume - this will be checked by HomePage component
+      // For now, scroll to resume section (HomePage will handle the logic)
+      const resumeSection = document.getElementById('resume-section')
+      const jobSection = document.getElementById('job-section')
+
+      // If job section exists (resume uploaded), scroll there, otherwise scroll to resume
+      const targetSection = jobSection || resumeSection
+      if (targetSection) {
+        targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }, 100)
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
+      {/* Premium Navigation */}
+      <nav className="glass-premium sticky top-0 z-50 border-b border-gray-200/50 dark:border-gray-800/50">
+        <div className="container-premium">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link
+              to="/"
+              className="flex items-center gap-3 group focus-premium rounded-button px-2 -mx-2"
+            >
+              <div className="relative">
+                <Brain className="w-8 h-8 text-primary-600 dark:text-primary-400 transition-transform group-hover:scale-110" />
+                <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-soft" />
               </div>
+              <span className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                Cortex
+              </span>
+            </Link>
+
+            {/* Navigation Items - Desktop */}
+            <div className="hidden lg:flex items-center gap-1">
+              {navItems.map(({ path, label, icon: Icon }) => {
+                const isActive = location.pathname === path
+                return (
+                  <Link
+                    key={path}
+                    to={path}
+                    className={`
+                      flex items-center gap-2 px-4 py-2 rounded-button
+                      text-sm font-medium transition-all duration-200
+                      focus-premium
+                      ${
+                        isActive
+                          ? 'bg-primary-50 dark:bg-primary-950/50 text-primary-700 dark:text-primary-300 shadow-soft'
+                          : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50'
+                      }
+                    `}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{label}</span>
+                    {isActive && (
+                      <div className="w-1.5 h-1.5 bg-primary-600 dark:bg-primary-400 rounded-full animate-pulse" />
+                    )}
+                  </Link>
+                )
+              })}
             </div>
 
-            {/* Right side - Status indicator */}
-            <div className="flex items-center space-x-4">
-              <Badge variant="success" size="sm">
-                <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse mr-1"></div>
-                Online
-              </Badge>
+            {/* Right Side - Dark Mode + CTA */}
+            <div className="flex items-center gap-3">
+              <DarkModeToggle />
+              <PremiumButton
+                variant="primary"
+                size="md"
+                icon={Plus}
+                onClick={handleNewAnalysis}
+                className="hidden md:flex"
+              >
+                New Analysis
+              </PremiumButton>
+              {/* Mobile CTA */}
+              <PremiumButton
+                variant="primary"
+                size="sm"
+                icon={Plus}
+                onClick={handleNewAnalysis}
+                className="flex md:hidden"
+              >
+                New
+              </PremiumButton>
             </div>
           </div>
         </div>
@@ -70,33 +117,26 @@ function Layout({ children }) {
       {/* Main Content */}
       <main className="flex-1">{children}</main>
 
-      {/* Enhanced Footer */}
-      <footer className="bg-white border-t mt-auto">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="flex items-center space-x-4 text-sm text-gray-600">
-              <div className="flex items-center space-x-2">
-                <Brain className="h-4 w-4 text-primary-600" />
-                <span className="font-semibold">Cortex</span>
+      {/* Premium Footer */}
+      <footer className="border-t border-gray-200/50 dark:border-gray-800/50 mt-auto">
+        <div className="container-premium py-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            {/* Left Side */}
+            <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex items-center gap-2">
+                <Brain className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+                <span className="font-semibold text-gray-900 dark:text-gray-100">Cortex</span>
               </div>
-              <span className="text-gray-400">|</span>
+              <span className="text-gray-300 dark:text-gray-700">•</span>
               <span>Your Career Second Brain</span>
             </div>
 
-            <div className="flex items-center space-x-6 text-sm">
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center space-x-1 text-gray-600 hover:text-primary-600 transition-colors"
-              >
-                <Github className="h-4 w-4" />
-                <span>GitHub</span>
-                <ExternalLink className="h-3 w-3" />
-              </a>
-              <span className="text-gray-400">•</span>
-              <span className="text-gray-600">
-                Powered by <span className="font-semibold text-primary-600">Gemini AI</span>
+            {/* Right Side */}
+            <div className="flex items-center gap-6 text-sm text-gray-600 dark:text-gray-400">
+              <span>Powered by AI</span>
+              <span className="text-gray-300 dark:text-gray-700">•</span>
+              <span className="font-medium text-gray-900 dark:text-gray-100">
+                © {new Date().getFullYear()}
               </span>
             </div>
           </div>

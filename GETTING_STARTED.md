@@ -143,7 +143,7 @@ npm run typecheck
 - **Main README**: Project overview and architecture
 - **CLAUDE.md**: Codebase guide for AI agents
 - **backend-ts/README.md**: Backend-specific documentation
-- **Spec**: `docs/spec.md` for original project requirements
+- **docs/PROJECT_STRUCTURE.md**: Detailed project structure guide
 
 ## Support
 

@@ -78,206 +78,212 @@ function JobDescriptionInput() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-gray-200 p-6">
-      <div className="space-y-4">
-        {/* Tab Selector */}
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-          <button
-            type="button"
-            onClick={() => setInputMode('url')}
-            className={`flex-1 py-2 px-4 rounded-md flex items-center justify-center space-x-2 transition-colors ${
-              inputMode === 'url'
-                ? 'bg-white text-primary-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            <LinkIcon className="h-4 w-4" />
-            <span>From URL</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setInputMode('manual')}
-            className={`flex-1 py-2 px-4 rounded-md flex items-center justify-center space-x-2 transition-colors ${
-              inputMode === 'manual'
-                ? 'bg-white text-primary-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            <FileText className="h-4 w-4" />
-            <span>Manual Input</span>
-          </button>
-        </div>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Tab Selector */}
+      <div className="flex space-x-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-button">
+        <button
+          type="button"
+          onClick={() => setInputMode('url')}
+          className={`flex-1 py-2.5 px-4 rounded-button flex items-center justify-center space-x-2 transition-all font-medium ${
+            inputMode === 'url'
+              ? 'bg-white dark:bg-gray-900 text-primary-600 dark:text-primary-400 shadow-soft'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+          }`}
+        >
+          <LinkIcon className="h-4 w-4" />
+          <span>From URL</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setInputMode('manual')}
+          className={`flex-1 py-2.5 px-4 rounded-button flex items-center justify-center space-x-2 transition-all font-medium ${
+            inputMode === 'manual'
+              ? 'bg-white dark:bg-gray-900 text-primary-600 dark:text-primary-400 shadow-soft'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+          }`}
+        >
+          <FileText className="h-4 w-4" />
+          <span>Manual Input</span>
+        </button>
+      </div>
 
-        {/* URL Input Mode */}
-        {inputMode === 'url' && (
-          <div className="space-y-4">
+      {/* URL Input Mode */}
+      {inputMode === 'url' && (
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Job Posting URL
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-button bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                placeholder={EXTERNAL_LINKS.PLACEHOLDER_JOB_URL}
+                disabled={isFetchingUrl}
+              />
+              <button
+                type="button"
+                onClick={handleFetchFromUrl}
+                disabled={isFetchingUrl || !urlInput.trim()}
+                className="px-6 py-3 bg-primary-600 dark:bg-primary-500 text-white rounded-button hover:bg-primary-700 dark:hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium shadow-soft hover:shadow-card"
+              >
+                {isFetchingUrl ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>{MESSAGES.LOADING_FETCHING}</span>
+                  </>
+                ) : (
+                  <>
+                    <LinkIcon className="h-4 w-4" />
+                    <span>Fetch</span>
+                  </>
+                )}
+              </button>
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+              {MESSAGES.INSTRUCTION_PASTE_URL}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Success notification for URL fetch */}
+      {urlFetchSuccess && (
+        <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-button p-4 flex items-center gap-3 fade-in-up">
+          <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+          <span className="text-sm text-emerald-800 dark:text-emerald-300 font-medium">{MESSAGES.SUCCESS_URL_FETCHED}</span>
+        </div>
+      )}
+
+      {/* Manual Input Mode */}
+      {inputMode === 'manual' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Job Posting URL
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <Building className="h-4 w-4 text-gray-500 dark:text-gray-500" />
+                <span>Company Name *</span>
               </label>
-              <div className="flex space-x-2">
-                <input
-                  type="url"
-                  value={urlInput}
-                  onChange={(e) => setUrlInput(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder={EXTERNAL_LINKS.PLACEHOLDER_JOB_URL}
-                  disabled={isFetchingUrl}
-                />
-                <button
-                  type="button"
-                  onClick={handleFetchFromUrl}
-                  disabled={isFetchingUrl || !urlInput.trim()}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                >
-                  {isFetchingUrl ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>{MESSAGES.LOADING_FETCHING}</span>
-                    </>
-                  ) : (
-                    <>
-                      <LinkIcon className="h-4 w-4" />
-                      <span>Fetch</span>
-                    </>
-                  )}
-                </button>
-              </div>
-              <p className="text-sm text-gray-500 mt-1">
-                {MESSAGES.INSTRUCTION_PASTE_URL}
-              </p>
+              <input
+                type="text"
+                value={formData.company}
+                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                className={`w-full px-4 py-3 border rounded-button focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all ${
+                  formData.company
+                    ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20'
+                    : 'border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900'
+                } text-gray-900 dark:text-gray-100`}
+                placeholder="Acme Corp"
+              />
+            </div>
+
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <User className="h-4 w-4 text-gray-500 dark:text-gray-500" />
+                <span>Role Title *</span>
+              </label>
+              <input
+                type="text"
+                value={formData.role}
+                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                className={`w-full px-4 py-3 border rounded-button focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all ${
+                  formData.role
+                    ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20'
+                    : 'border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900'
+                } text-gray-900 dark:text-gray-100`}
+                placeholder="Senior Software Engineer"
+              />
             </div>
           </div>
-        )}
 
-        {/* Success notification for URL fetch */}
-        {urlFetchSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center space-x-2 animate-fade-in">
-            <CheckCircle className="h-5 w-5 text-green-600" />
-            <span className="text-sm text-green-800 font-medium">{MESSAGES.SUCCESS_URL_FETCHED}</span>
-          </div>
-        )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Source
+              </label>
+              <input
+                type="text"
+                value={formData.source}
+                onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-button bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                placeholder="LinkedIn, Company Site, etc."
+              />
+            </div>
 
-        {/* Manual Input Mode */}
-        {inputMode === 'manual' && (
-          <>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-1">
-              <Building className="h-4 w-4 text-gray-500" />
-              <span>Company Name *</span>
-            </label>
-            <input
-              type="text"
-              value={formData.company}
-              onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all ${
-                formData.company ? 'border-green-300 bg-green-50' : 'border-gray-300'
-              }`}
-              placeholder="Acme Corp"
-            />
-          </div>
-
-          <div>
-            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-1">
-              <User className="h-4 w-4 text-gray-500" />
-              <span>Role Title *</span>
-            </label>
-            <input
-              type="text"
-              value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all ${
-                formData.role ? 'border-green-300 bg-green-50' : 'border-gray-300'
-              }`}
-              placeholder="Senior Software Engineer"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Source
-            </label>
-            <input
-              type="text"
-              value={formData.source}
-              onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="LinkedIn, Company Site, etc."
-            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Company Stage
+              </label>
+              <select
+                value={formData.company_stage}
+                onChange={(e) => setFormData({ ...formData, company_stage: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-button bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+              >
+                <option value={COMPANY_STAGES.STARTUP.value}>{COMPANY_STAGES.STARTUP.label}</option>
+                <option value={COMPANY_STAGES.SERIES_B.value}>{COMPANY_STAGES.SERIES_B.label}</option>
+                <option value={COMPANY_STAGES.LATE_STAGE.value}>{COMPANY_STAGES.LATE_STAGE.label}</option>
+                <option value={COMPANY_STAGES.PUBLIC.value}>{COMPANY_STAGES.PUBLIC.label}</option>
+              </select>
+            </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Company Stage
-            </label>
-            <select
-              value={formData.company_stage}
-              onChange={(e) => setFormData({ ...formData, company_stage: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-            >
-              <option value={COMPANY_STAGES.STARTUP.value}>{COMPANY_STAGES.STARTUP.label}</option>
-              <option value={COMPANY_STAGES.SERIES_B.value}>{COMPANY_STAGES.SERIES_B.label}</option>
-              <option value={COMPANY_STAGES.LATE_STAGE.value}>{COMPANY_STAGES.LATE_STAGE.label}</option>
-              <option value={COMPANY_STAGES.PUBLIC.value}>{COMPANY_STAGES.PUBLIC.label}</option>
-            </select>
-          </div>
-        </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                <FileText className="h-4 w-4 text-gray-500" />
+            <div className="flex items-center justify-between mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                <FileText className="h-4 w-4 text-gray-500 dark:text-gray-500" />
                 <span>Job Description *</span>
               </label>
-              <span className={`text-xs font-medium ${
-                formData.description.length >= VALIDATION.MIN_DESCRIPTION_LENGTH ? 'text-green-600' : 'text-gray-500'
+              <span className={`text-xs font-semibold ${
+                formData.description.length >= VALIDATION.MIN_DESCRIPTION_LENGTH
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-gray-500 dark:text-gray-500'
               }`}>
                 {formData.description.length} characters
-                {formData.description.length < VALIDATION.MIN_DESCRIPTION_LENGTH && ` (minimum ${VALIDATION.MIN_DESCRIPTION_LENGTH})`}
+                {formData.description.length < VALIDATION.MIN_DESCRIPTION_LENGTH && ` (min ${VALIDATION.MIN_DESCRIPTION_LENGTH})`}
               </span>
             </div>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={10}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all ${
-                formData.description.length >= VALIDATION.MIN_DESCRIPTION_LENGTH ? 'border-green-300 bg-green-50' : 'border-gray-300'
-              }`}
+              className={`w-full px-4 py-3 border rounded-button focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all resize-none ${
+                formData.description.length >= VALIDATION.MIN_DESCRIPTION_LENGTH
+                  ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20'
+                  : 'border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900'
+              } text-gray-900 dark:text-gray-100`}
               placeholder="Paste the full job description here..."
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
               {MESSAGES.INSTRUCTION_INCLUDE_DETAILS}
             </p>
           </div>
-        </>
-        )}
+        </div>
+      )}
 
-        {/* Submit Button - Only show in manual mode */}
-        {inputMode === 'manual' && (
-          <div className="space-y-2">
-            <button
-              type="submit"
-              disabled={!isFormValid}
-              className={`w-full py-3 px-4 rounded-md transition-all flex items-center justify-center space-x-2 font-semibold ${
-                isFormValid
-                  ? 'bg-primary-600 text-white hover:bg-primary-700 hover:shadow-lg transform hover:-translate-y-0.5'
-                  : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              <Briefcase className="h-5 w-5" />
-              <span>{isFormValid ? 'Analyze Job Fit' : 'Complete Required Fields'}</span>
-            </button>
-            {!isFormValid && (
-              <p className="text-xs text-center text-gray-500">
-                {MESSAGES.INSTRUCTION_COMPLETE_FIELDS}
-              </p>
-            )}
-          </div>
-        )}
-      </div>
+      {/* Submit Button - Only show in manual mode */}
+      {inputMode === 'manual' && (
+        <div className="space-y-3">
+          <button
+            type="submit"
+            disabled={!isFormValid}
+            className={`w-full py-3.5 px-6 rounded-button transition-all flex items-center justify-center gap-2 font-semibold ${
+              isFormValid
+                ? 'bg-gradient-to-r from-primary-600 to-primary-500 text-white hover:from-primary-700 hover:to-primary-600 shadow-soft hover:shadow-card premium-hover'
+                : 'bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-600 cursor-not-allowed'
+            }`}
+          >
+            <Briefcase className="h-5 w-5" />
+            <span>{isFormValid ? 'Analyze Job Fit' : 'Complete Required Fields'}</span>
+          </button>
+          {!isFormValid && (
+            <p className="text-xs text-center text-gray-500 dark:text-gray-500">
+              {MESSAGES.INSTRUCTION_COMPLETE_FIELDS}
+            </p>
+          )}
+        </div>
+      )}
     </form>
   )
 }

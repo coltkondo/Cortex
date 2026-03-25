@@ -15,11 +15,10 @@ cortex/
 ├── frontend/                      # React Application
 │   ├── src/
 │   │   ├── components/            # React components
-│   │   │   ├── common/            # Layout, shared UI
+│   │   │   ├── common/            # Layout, shared UI, premium components
 │   │   │   ├── resume/            # Resume upload
 │   │   │   ├── jobs/              # Job input
-│   │   │   ├── analysis/          # Fit score display
-│   │   │   ├── generator/         # AI content generators
+│   │   │   ├── analysis/          # AI analysis sections (fit score, bullets, cover letter)
 │   │   │   └── pipeline/          # Kanban board
 │   │   ├── pages/                 # Page components
 │   │   │   ├── HomePage.jsx
@@ -74,7 +73,6 @@ cortex/
 │   └── README.md
 │
 ├── docs/                          # Documentation
-│   ├── spec.md                    # Original specification
 │   └── PROJECT_STRUCTURE.md       # This file
 │
 ├── CLAUDE.md                      # AI agent guide
