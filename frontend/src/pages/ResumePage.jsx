@@ -14,12 +14,13 @@ import ResumeUpload from '../components/resume/ResumeUpload'
  * ResumePage - Comprehensive resume management with AI insights
  * Three tabs: View, Edit, AI Insights
  * Actions: Download, Upload New, Delete
+ * AI Insights are cached and persist across tab navigation
  */
 function ResumePage() {
   const [activeTab, setActiveTab] = useState('view') // view, edit, insights
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const { resume, setResume } = useStore()
+  const { resume, setResume, clearResumeInsights } = useStore()
 
   // Fetch resume on mount if not in store
   useEffect(() => {
@@ -57,6 +58,7 @@ function ResumePage() {
     try {
       await resumeService.deleteResume()
       setResume(null)
+      clearResumeInsights()
       setShowDeleteConfirm(false)
     } catch (err) {
       console.error('Delete failed:', err)
@@ -64,6 +66,7 @@ function ResumePage() {
   }
 
   const handleUploadSuccess = () => {
+    clearResumeInsights() // Clear cached insights when uploading new resume
     setShowUploadModal(false)
     fetchResume()
   }

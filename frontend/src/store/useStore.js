@@ -57,10 +57,10 @@ export const useStore = create((set) => ({
       },
     })),
 
-  // Insights state
-  insights: null,
-  setInsights: (insights) => set({ insights }),
-  clearInsights: () => set({ insights: null }),
+  // Resume AI Insights state (cached across tab navigation)
+  resumeInsights: null,
+  setResumeInsights: (insights) => set({ resumeInsights: insights }),
+  clearResumeInsights: () => set({ resumeInsights: null }),
 
   // UI state
   loading: false,

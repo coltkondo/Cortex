@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { RefreshCw, AlertTriangle } from 'lucide-react'
 import { resumeService } from '../../api/resumeService'
+import { useStore } from '../../store/useStore'
 import PremiumButton from '../common/PremiumButton'
 import EmptyState from '../common/EmptyState'
 import ResumeScoreCards from './insights/ResumeScoreCards'
@@ -11,29 +12,45 @@ import SkillsGapCard from './insights/SkillsGapCard'
 
 /**
  * AIInsights - AI-powered resume analysis and improvements
- * Displays scores, strengths, weaknesses, keywords, bullet improvements, skills gap
+ * Analysis is cached in store and persists across tab navigation
+ * Only re-analyzes when user clicks "Regenerate Analysis" button
  */
 function AIInsights() {
-  const [analysis, setAnalysis] = useState(null)
+  const { resumeInsights, setResumeInsights } = useStore()
+  const hasAttemptedLoad = useRef(false)
   const [loading, setLoading] = useState(false)
+  const [regenerating, setRegenerating] = useState(false)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    analyzeResumeData()
-  }, [])
+    // Only fetch on first mount if insights not in store and we haven't tried to load yet
+    if (!resumeInsights && !hasAttemptedLoad.current) {
+      hasAttemptedLoad.current = true
+      analyzeResumeData()
+    }
+  }, []) // Empty dependency array - only runs on mount
 
-  const analyzeResumeData = async () => {
-    setLoading(true)
+  const analyzeResumeData = async (isRegenerate = false) => {
+    if (isRegenerate) {
+      setRegenerating(true)
+    } else {
+      setLoading(true)
+    }
     setError(null)
 
     try {
       const data = await resumeService.analyzeResume()
-      setAnalysis(data)
+      setResumeInsights(data)
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to analyze resume')
     } finally {
       setLoading(false)
+      setRegenerating(false)
     }
+  }
+
+  const handleRegenerate = () => {
+    analyzeResumeData(true)
   }
 
   const copyToClipboard = (text) => {
@@ -47,7 +64,7 @@ function AIInsights() {
     return { color: 'red', label: 'Poor', bgColor: 'bg-red-500' }
   }
 
-  if (loading && !analysis) {
+  if (loading && !resumeInsights) {
     return (
       <div className="max-w-6xl mx-auto flex items-center justify-center py-20">
         <div className="text-center">
@@ -61,7 +78,7 @@ function AIInsights() {
     )
   }
 
-  if (error && !analysis) {
+  if (error && !resumeInsights) {
     return (
       <div className="max-w-6xl mx-auto">
         <EmptyState
@@ -78,54 +95,53 @@ function AIInsights() {
     )
   }
 
-  if (!analysis) {
+  if (!resumeInsights) {
     return null
   }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      {/* Regenerate Button */}
+      <div className="flex justify-end">
+        <button
+          onClick={handleRegenerate}
+          disabled={regenerating}
+          className="px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-button hover:bg-primary-700 dark:hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium shadow-soft hover:shadow-card"
+        >
+          <RefreshCw className={`h-4 w-4 ${regenerating ? 'animate-spin' : ''}`} />
+          <span>{regenerating ? 'Regenerating...' : 'Regenerate Analysis'}</span>
+        </button>
+      </div>
+
       {/* Score Cards */}
       <ResumeScoreCards
-        overallScore={analysis.overallScore}
-        atsScore={analysis.atsScore}
+        overallScore={resumeInsights.overallScore}
+        atsScore={resumeInsights.atsScore}
         getScoreConfig={getScoreConfig}
       />
 
       {/* Strengths & Weaknesses */}
       <StrengthsWeaknessesCards
-        strengths={analysis.strengths}
-        weaknesses={analysis.weaknesses}
+        strengths={resumeInsights.strengths}
+        weaknesses={resumeInsights.weaknesses}
       />
 
       {/* Keyword Suggestions */}
       <KeywordSuggestionsCard
-        keywords={analysis.keywordSuggestions}
+        keywords={resumeInsights.keywordSuggestions}
         copyToClipboard={copyToClipboard}
       />
 
       {/* Bullet Improvements */}
       <BulletImprovementsCard
-        bulletImprovements={analysis.bulletImprovements}
+        bulletImprovements={resumeInsights.bulletImprovements}
         copyToClipboard={copyToClipboard}
       />
 
       {/* Skills Gap */}
       <SkillsGapCard
-        skillsGap={analysis.skillsGap}
+        skillsGap={resumeInsights.skillsGap}
       />
-
-      {/* Regenerate Button */}
-      <div className="flex justify-center">
-        <PremiumButton
-          variant="secondary"
-          size="lg"
-          icon={RefreshCw}
-          onClick={analyzeResumeData}
-          loading={loading}
-        >
-          Regenerate Analysis
-        </PremiumButton>
-      </div>
     </div>
   )
 }
