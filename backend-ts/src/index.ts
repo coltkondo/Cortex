@@ -8,6 +8,8 @@ import { getCacheStats, clearAICaches } from './services/cache';
 import resumeRouter from './routes/resume';
 import jobsRouter from './routes/jobs';
 import analysisRouter from './routes/analysis';
+import applicationRouter from './routes/application';
+import insightsRouter from './routes/insights';
 
 const app = express();
 
@@ -70,6 +72,8 @@ app.delete('/api/cache', async (req, res) => {
 app.use('/api/resume', resumeRouter);
 app.use('/api/jobs', jobsRouter);
 app.use('/api/analysis', analysisRouter);
+app.use('/api/applications', applicationRouter);
+app.use('/api/insights', insightsRouter);
 
 // Initialize database and start server
 const startServer = async () => {

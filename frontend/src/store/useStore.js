@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { applicationService } from '../api/applicationService'
 
 export const useStore = create((set) => ({
   // Resume state
@@ -33,6 +34,15 @@ export const useStore = create((set) => ({
         (app) => app.id !== applicationId
       ),
     })),
+  setApplications: (applications) => set({ applications }),
+  fetchApplications: async () => {
+    try {
+      const applications = await applicationService.getApplications()
+      set({ applications })
+    } catch (error) {
+      console.error('Failed to fetch applications:', error)
+    }
+  },
 
   // Generated content state
   generatedContent: {},
