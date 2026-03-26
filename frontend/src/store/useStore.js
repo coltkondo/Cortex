@@ -57,6 +57,11 @@ export const useStore = create((set) => ({
       },
     })),
 
+  // Insights state
+  insights: null,
+  setInsights: (insights) => set({ insights }),
+  clearInsights: () => set({ insights: null }),
+
   // UI state
   loading: false,
   setLoading: (loading) => set({ loading }),

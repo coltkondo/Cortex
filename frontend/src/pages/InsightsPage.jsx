@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   BarChart3, TrendingUp, Clock, Target,
-  Building2, Briefcase, Activity
+  Building2, Briefcase, Activity, RefreshCw
 } from 'lucide-react'
 import StatCard from '../components/insights/StatCard'
 import FunnelChart from '../components/insights/FunnelChart'
@@ -10,23 +10,35 @@ import EmptyState from '../components/common/EmptyState'
 import PremiumButton from '../components/common/PremiumButton'
 import PageHeader from '../components/common/PageHeader'
 import { useNavigate } from 'react-router-dom'
+import { useStore } from '../store/useStore'
 
 /**
  * InsightsPage - Analytics dashboard
  * Track job search progress, identify trends, and measure success
+ * Insights are cached in store and only refreshed when explicitly requested
  */
 function InsightsPage() {
-  const [insights, setInsights] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   const navigate = useNavigate()
+  const { insights, setInsights } = useStore()
+  const hasAttemptedLoad = useRef(false)
+  const [loading, setLoading] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    fetchInsights()
-  }, [])
+    // Only fetch on first mount if insights not in store and we haven't tried to load yet
+    if (!insights && !hasAttemptedLoad.current) {
+      hasAttemptedLoad.current = true
+      fetchInsights()
+    }
+  }, []) // Empty dependency array - only runs on mount
 
-  const fetchInsights = async () => {
-    setLoading(true)
+  const fetchInsights = async (isRefresh = false) => {
+    if (isRefresh) {
+      setRefreshing(true)
+    } else {
+      setLoading(true)
+    }
     setError(null)
 
     try {
@@ -39,7 +51,12 @@ function InsightsPage() {
       setError(err.message)
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
+  }
+
+  const handleRefreshInsights = () => {
+    fetchInsights(true)
   }
 
   if (loading) {
@@ -73,7 +90,7 @@ function InsightsPage() {
           title="Failed to Load Insights"
           description={error}
           action={
-            <PremiumButton variant="primary" onClick={fetchInsights}>
+            <PremiumButton variant="primary" onClick={() => fetchInsights(true)}>
               Try Again
             </PremiumButton>
           }
@@ -118,6 +135,18 @@ function InsightsPage() {
 
       {/* Content */}
       <div className="container-premium py-12">
+        {/* Refresh Button */}
+        <div className="mb-8 flex justify-end">
+          <button
+            onClick={handleRefreshInsights}
+            disabled={refreshing}
+            className="px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-button hover:bg-primary-700 dark:hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium shadow-soft hover:shadow-card"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <span>{refreshing ? 'Refreshing...' : 'Refresh Insights'}</span>
+          </button>
+        </div>
+
         {/* Overview Stats */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard

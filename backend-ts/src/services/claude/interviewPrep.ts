@@ -1,5 +1,6 @@
 import { claude, MODEL, MAX_TOKENS } from './client';
 import { withCache } from '../cache';
+import { refineWithStopSlop, refineJsonFields } from '../refining/stopSlopRefiner';
 
 export interface InterviewPrepResult {
   behavioral_questions: string[];
@@ -71,7 +72,15 @@ Guidelines:
     const startIdx = content.indexOf('{');
     const endIdx = content.lastIndexOf('}') + 1;
     const jsonStr = content.substring(startIdx, endIdx);
-    return JSON.parse(jsonStr);
+    const parsed = JSON.parse(jsonStr);
+    // Apply stop-slop refinement to remove AI tells
+    return refineJsonFields(parsed, [
+      'behavioral_questions',
+      'star_answers',
+      'technical_topics',
+      'questions_to_ask',
+      'company_context',
+    ]);
   } catch (error) {
     // Fallback
     return {

@@ -6,6 +6,11 @@ export const jobService = {
     return response.data
   },
 
+  formatDescription: async (description, company, role) => {
+    const response = await apiClient.post('/api/jobs/format-description', { description, company, role })
+    return response.data
+  },
+
   createJob: async (jobData) => {
     const response = await apiClient.post('/api/jobs', jobData)
     return response.data

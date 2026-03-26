@@ -1,5 +1,6 @@
 import { claude, MODEL, MAX_TOKENS } from './client';
 import { withCache } from '../cache';
+import { refineWithStopSlop } from '../refining/stopSlopRefiner';
 
 export async function generateCoverLetter(
   resumeText: string,
@@ -63,5 +64,7 @@ Write the complete cover letter (no placeholders like [Your Name] - use actual r
     messages: [{ role: 'user', content: prompt }],
   });
 
-  return response.content[0].text.trim();
+  const coverLetter = response.content[0].text.trim();
+  // Apply stop-slop refinement to remove AI tells and make more human-like
+  return refineWithStopSlop(coverLetter);
 }

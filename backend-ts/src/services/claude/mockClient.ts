@@ -25,20 +25,49 @@ export class MockAIClient implements AIClient {
   };
 
   private mockFitScore(): AIResponse {
+    // Return realistic mock data that matches the new ATS-like scoring
+    const scores = [65, 72, 78, 82, 88];
+    const score = scores[Math.floor(Math.random() * scores.length)];
+
     const response = JSON.stringify({
-      overall_match: 75,
+      overall_match: score,
       reasoning:
-        'Strong technical skills match with 5+ years of relevant experience. Some gaps in specific frameworks mentioned in the JD, but overall solid alignment with role requirements.',
-      skill_gaps: ['GraphQL', 'Kubernetes', 'AWS Lambda'],
-      strengths: [
-        'Python/FastAPI',
-        'React',
-        'SQL databases',
-        'REST API design',
-        'CI/CD pipelines',
-      ],
-      experience_alignment: 'mid to senior - Experience level aligns well with role expectations',
-      red_flags: ['Limited cloud infrastructure experience'],
+        score >= 80
+          ? `Strong match with majority of required skills. Experience level aligns well with role requirements and domain expertise is relevant.`
+          : score >= 70
+            ? `Good match with most core skills present. Some skill gaps but foundational experience is relevant to the role.`
+            : `Moderate match with key skills present. Would require some role-specific learning but has relevant experience.`,
+      skill_gaps:
+        score >= 80
+          ? ['Advanced AWS architecture', 'Kubernetes orchestration']
+          : score >= 70
+            ? ['GraphQL', 'Kubernetes', 'Advanced AWS']
+            : ['GraphQL', 'Kubernetes', 'AWS Lambda', 'Docker advanced patterns'],
+      strengths:
+        score >= 80
+          ? [
+              'Python/FastAPI',
+              'React',
+              'SQL databases',
+              'REST API design',
+              'CI/CD pipelines',
+              'Full-stack development',
+            ]
+          : score >= 70
+            ? ['Python/FastAPI', 'React', 'SQL databases', 'REST API design', 'CI/CD pipelines']
+            : ['Python', 'React', 'SQL databases', 'Basic API design'],
+      experience_alignment:
+        score >= 80
+          ? 'mid to senior - Excellent alignment with role expectations'
+          : score >= 70
+            ? 'mid - Good alignment with core requirements'
+            : 'junior to mid - Some growth opportunity to meet all requirements',
+      red_flags:
+        score >= 80
+          ? []
+          : score >= 70
+            ? ['Limited cloud infrastructure experience']
+            : ['Limited production deployment experience', 'Few years with current tech stack'],
     });
 
     return { content: [{ text: response }] };

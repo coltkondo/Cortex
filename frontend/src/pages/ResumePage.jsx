@@ -5,6 +5,7 @@ import { resumeService } from '../api/resumeService'
 import PremiumButton from '../components/common/PremiumButton'
 import ResumeViewer from '../components/resume/ResumeViewer'
 import ResumeEditor from '../components/resume/ResumeEditor'
+import ResumeLatexEditor from '../components/resume/ResumeLatexEditor'
 import AIInsights from '../components/resume/AIInsights'
 import Modal from '../components/common/Modal'
 import ResumeUpload from '../components/resume/ResumeUpload'
@@ -70,6 +71,7 @@ function ResumePage() {
   const tabs = [
     { id: 'view', label: 'View' },
     { id: 'edit', label: 'Edit' },
+    { id: 'latex', label: 'LaTeX Editor' },
     { id: 'insights', label: 'AI Insights' },
   ]
 
@@ -196,6 +198,7 @@ function ResumePage() {
       <div className="container-premium py-12">
         {activeTab === 'view' && <ResumeViewer />}
         {activeTab === 'edit' && <ResumeEditor />}
+        {activeTab === 'latex' && <ResumeLatexEditor />}
         {activeTab === 'insights' && <AIInsights />}
       </div>
 

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Briefcase, Link as LinkIcon, FileText, Loader2, CheckCircle, Building, User } from 'lucide-react'
 import { useStore } from '../../store/useStore'
@@ -11,6 +11,8 @@ function JobDescriptionInput() {
   const [inputMode, setInputMode] = useState('manual') // 'url' or 'manual'
   const [urlInput, setUrlInput] = useState('')
   const [isFetchingUrl, setIsFetchingUrl] = useState(false)
+  const [isFormattingDescription, setIsFormattingDescription] = useState(false)
+  const [formatDebounceTimer, setFormatDebounceTimer] = useState(null)
   const [formData, setFormData] = useState({
     company: '',
     role: '',
@@ -19,6 +21,15 @@ function JobDescriptionInput() {
     company_stage: 'series_b',
   })
   const [urlFetchSuccess, setUrlFetchSuccess] = useState(false)
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (formatDebounceTimer) {
+        clearTimeout(formatDebounceTimer)
+      }
+    }
+  }, [formatDebounceTimer])
 
   // Form validation (UX: Real-time feedback)
   const isFormValid = formData.company && formData.role && formData.description.length >= VALIDATION.MIN_DESCRIPTION_LENGTH
@@ -36,12 +47,36 @@ function JobDescriptionInput() {
 
       // Pre-fill form with fetched data
       setFormData({
-        company: jobData.company || formData.company,
-        role: jobData.role || formData.role,
+        company: jobData.company || '',
+        role: jobData.role || '',
         description: jobData.description,
         source: jobData.source || urlInput,
-        company_stage: formData.company_stage,
+        company_stage: 'series_b',
       })
+
+      // Auto-format the fetched description
+      try {
+        setIsFormattingDescription(true)
+        const formatted = await jobService.formatDescription(
+          jobData.description,
+          jobData.company,
+          jobData.role
+        )
+        
+        // Update with formatted version
+        setFormData({
+          company: formatted.company || jobData.company || '',
+          role: formatted.title || jobData.role || '',
+          description: formatted.format,
+          source: jobData.source || urlInput,
+          company_stage: 'series_b',
+        })
+      } catch (formatErr) {
+        // If formatting fails, just use the raw fetched data
+        console.warn('Failed to format description:', formatErr)
+      } finally {
+        setIsFormattingDescription(false)
+      }
 
       // Switch to manual mode to allow edits
       setInputMode('manual')
@@ -54,6 +89,47 @@ function JobDescriptionInput() {
     } finally {
       setIsFetchingUrl(false)
     }
+  }
+
+  const autoFormatDescription = async (description, company, role) => {
+    if (!description || description.trim().length < 100) {
+      // Only auto-format if description is substantial
+      return
+    }
+
+    try {
+      setIsFormattingDescription(true)
+      const formatted = await jobService.formatDescription(description, company, role)
+      
+      setFormData((prev) => ({
+        ...prev,
+        description: formatted.format,
+        company: formatted.company || prev.company,
+        role: formatted.title || prev.role,
+      }))
+    } catch (err) {
+      // Silently fail - don't disrupt user experience
+      console.warn('Auto-format failed:', err)
+    } finally {
+      setIsFormattingDescription(false)
+    }
+  }
+
+  const handleDescriptionChange = (e) => {
+    const newDescription = e.target.value
+    setFormData({ ...formData, description: newDescription })
+
+    // Clear existing timer
+    if (formatDebounceTimer) {
+      clearTimeout(formatDebounceTimer)
+    }
+
+    // Set new debounced formatter (3 seconds after user stops typing)
+    const timer = setTimeout(() => {
+      autoFormatDescription(newDescription, formData.company, formData.role)
+    }, 3000)
+
+    setFormatDebounceTimer(timer)
   }
 
   const handleSubmit = async (e) => {
@@ -246,7 +322,7 @@ function JobDescriptionInput() {
             </div>
             <textarea
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={handleDescriptionChange}
               rows={10}
               className={`w-full px-4 py-3 border rounded-button focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all resize-none ${
                 formData.description.length >= VALIDATION.MIN_DESCRIPTION_LENGTH
@@ -255,6 +331,12 @@ function JobDescriptionInput() {
               } text-gray-900 dark:text-gray-100`}
               placeholder="Paste the full job description here..."
             />
+            {isFormattingDescription && (
+              <div className="mt-3 flex items-center gap-2 text-sm text-purple-600 dark:text-purple-400">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Cleaning up description...</span>
+              </div>
+            )}
             <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
               {MESSAGES.INSTRUCTION_INCLUDE_DETAILS}
             </p>

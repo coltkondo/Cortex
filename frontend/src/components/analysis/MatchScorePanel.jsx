@@ -58,7 +58,7 @@ function MatchScorePanel({ jobId }) {
     )
   }
 
-  const score = fitScore?.overall_match_percentage || 0
+  const score = fitScore?.overall_match || 0
   const config = getScoreConfig(score)
 
   return (

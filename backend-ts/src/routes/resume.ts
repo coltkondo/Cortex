@@ -5,6 +5,7 @@ import { Resume } from '../models/Resume';
 import { extractTextFromPDF } from '../utils/pdfParser';
 import { uploadRateLimiter } from '../config/rateLimiting';
 import { analyzeResume } from '../services/claude/resumeAnalysis';
+import { compileLatexToPdf, validateLatexContent } from '../utils/latexCompiler';
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -119,6 +120,143 @@ router.patch('/sections', async (req, res) => {
   } catch (error: any) {
     console.error('Update sections error:', error);
     res.status(500).json({ detail: error.message });
+  }
+});
+
+// Get LaTeX content
+router.get('/latex/content', async (req, res) => {
+  try {
+    const resumeRepo = AppDataSource.getRepository(Resume);
+    const resumes = await resumeRepo.find({
+      order: { id: 'DESC' },
+      take: 1
+    });
+    const resume = resumes[0];
+
+    if (!resume) {
+      return res.status(404).json({ detail: 'No resume found' });
+    }
+
+    res.json({
+      latexContent: resume.latexContent || null,
+      id: resume.id
+    });
+  } catch (error: any) {
+    console.error('Get LaTeX error:', error);
+    res.status(500).json({ detail: error.message });
+  }
+});
+
+// Save LaTeX content
+router.post('/latex/save', async (req, res) => {
+  try {
+    const { latexContent } = req.body;
+
+    if (!latexContent) {
+      return res.status(400).json({ detail: 'LaTeX content is required' });
+    }
+
+    // Validate LaTeX content
+    const validation = validateLatexContent(latexContent);
+    if (!validation.valid) {
+      return res.status(400).json({ 
+        detail: 'Invalid LaTeX content',
+        errors: validation.errors 
+      });
+    }
+
+    const resumeRepo = AppDataSource.getRepository(Resume);
+    const resumes = await resumeRepo.find({
+      order: { id: 'DESC' },
+      take: 1
+    });
+    let resume = resumes[0];
+
+    if (!resume) {
+      // Create a new resume if none exists
+      resume = resumeRepo.create({
+        filename: 'resume.tex',
+        content: 'LaTeX content',
+        latexContent: latexContent
+      });
+    } else {
+      resume.latexContent = latexContent;
+    }
+
+    await resumeRepo.save(resume);
+    res.json({
+      id: resume.id,
+      message: 'LaTeX saved successfully'
+    });
+  } catch (error: any) {
+    console.error('Save LaTeX error:', error);
+    res.status(500).json({ detail: error.message });
+  }
+});
+
+// Compile LaTeX to PDF
+router.post('/latex/compile', async (req, res) => {
+  try {
+    const { latexContent } = req.body;
+
+    if (!latexContent) {
+      return res.status(400).json({ detail: 'LaTeX content is required' });
+    }
+
+    // Validate LaTeX content
+    const validation = validateLatexContent(latexContent);
+    if (!validation.valid) {
+      return res.status(400).json({ 
+        detail: 'Invalid LaTeX content',
+        errors: validation.errors 
+      });
+    }
+
+    // Compile LaTeX to PDF
+    const pdfBuffer = await compileLatexToPdf(latexContent);
+
+    // Set response headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Content-Disposition', 'inline; filename="resume.pdf"');
+
+    res.send(pdfBuffer);
+  } catch (error: any) {
+    console.error('LaTeX compilation error:', error);
+    res.status(500).json({ detail: `LaTeX compilation failed: ${error.message}` });
+  }
+});
+
+// Download LaTeX compiled PDF
+router.post('/latex/download', async (req, res) => {
+  try {
+    const { latexContent, filename } = req.body;
+
+    if (!latexContent) {
+      return res.status(400).json({ detail: 'LaTeX content is required' });
+    }
+
+    // Validate LaTeX content
+    const validation = validateLatexContent(latexContent);
+    if (!validation.valid) {
+      return res.status(400).json({ 
+        detail: 'Invalid LaTeX content',
+        errors: validation.errors 
+      });
+    }
+
+    // Compile LaTeX to PDF
+    const pdfBuffer = await compileLatexToPdf(latexContent);
+
+    // Set response headers for file download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename || 'resume.pdf'}"`);
+
+    res.send(pdfBuffer);
+  } catch (error: any) {
+    console.error('LaTeX download error:', error);
+    res.status(500).json({ detail: `LaTeX compilation failed: ${error.message}` });
   }
 });
 

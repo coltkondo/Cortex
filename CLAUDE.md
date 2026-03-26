@@ -39,13 +39,14 @@ cortex/
 └── docs/              # Additional documentation
 ```
 
-## Core Features (5 Total)
+## Core Features (6 Total)
 
 1. **JD vs Resume Fit Scoring** - Compare job descriptions against resume with scored breakdown
 2. **Tailored Bullet Suggestions** - AI-generated resume bullets aligned to specific JD language
 3. **Cover Letter Drafting** - Targeted cover letters grounded in resume + JD
 4. **Application Pipeline Tracker** - Kanban-style board tracking application lifecycle
 5. **Interview Prep per JD** - Generate STAR-ready answers and prep questions per role
+6. **LaTeX Resume Editor** - Edit, preview, and compile LaTeX resumes to professional PDFs
 
 ## How to Work on Cortex
 
@@ -120,7 +121,58 @@ The AI abstraction layer in `backend-ts/src/services/ai/` allows easy switching 
 - This is a portfolio project built during active job search - the narrative is: "I built the tool I needed while using it"
 - Focus on shipping a working MVP fast - avoid over-engineering
 - The AI integration should demonstrate structured prompting and JSON responses, not just a chatbot wrapper
-- Keep the UX simple and focused on the five core features
+- Keep the UX simple and focused on the core features
+
+## LaTeX Resume Editor (New Feature)
+
+### Overview
+The LaTeX Resume Editor allows users to edit resumes in LaTeX format with real-time PDF preview and download capability.
+
+### How It Works
+1. Users edit LaTeX in a code editor with split-view layout
+2. PDF preview appears on the right side
+3. Click "Refresh PDF" to compile and preview changes
+4. Download compiled PDF or save LaTeX to database for later editing
+
+### Implementation Details
+
+**Backend Components:**
+- `backend-ts/src/utils/latexCompiler.ts` - LaTeX to PDF compilation
+- `backend-ts/src/routes/resume.ts` - API endpoints for LaTeX operations
+- `backend-ts/src/models/Resume.ts` - Added `latexContent` field to store LaTeX
+
+**Frontend Components:**
+- `frontend/src/components/resume/ResumeLatexEditor.jsx` - Main editor component
+- `frontend/src/pages/ResumePage.jsx` - Added LaTeX tab integration
+- `frontend/src/api/resumeService.js` - API methods for LaTeX operations
+
+**API Endpoints:**
+```
+GET    /api/resume/latex/content   - Fetch stored LaTeX
+POST   /api/resume/latex/save      - Save LaTeX to database
+POST   /api/resume/latex/compile   - Compile LaTeX to PDF (preview)
+POST   /api/resume/latex/download  - Compile and download PDF
+```
+
+**LaTeX Compilation:**
+- Uses `pdflatex` if available on system
+- Falls back to mock PDF for development
+- Validates LaTeX structure before compilation
+- Auto-cleanup of temporary files
+
+### Features
+- ✅ Live LaTeX editing with character counter
+- ✅ Real-time PDF preview (iframe-based)
+- ✅ One-click PDF download
+- ✅ Save/load LaTeX from database
+- ✅ Default template available
+- ✅ LaTeX validation (basic syntax checking)
+- ✅ Dark mode support
+- ✅ Error reporting with helpful messages
+- ✅ Copy LaTeX to clipboard
+
+### Usage
+See `docs/LATEX_EDITOR.md` for complete documentation and user guide.
 
 ---
 
@@ -370,6 +422,24 @@ SIZES.PROGRESS_RING_STROKE_LARGE = 12
 - ✅ `gemini-2.5-flash` - WORKS
 
 **Solution:** Always use `gemini-2.5-flash` model name. Update `backend-ts/src/services/ai/geminiClient.ts` line 16 if model changes.
+
+### Issue: Skill Matching False Positives
+**Date:** March 26, 2026
+**Problem:** Missing keywords section showed skills as missing when they were present in resume (React, TypeScript, K8s, etc.)
+**Root Causes:**
+1. Limited skill pattern recognition - original extractSkills had ~40 skills
+2. Strict fuzzy matching - >0.7 Levenshtein threshold too high for aliases
+3. No skill normalization - "k8s" vs "kubernetes" not recognized as identical
+4. Field name mismatch - Frontend was reading wrong response field
+
+**Solved April 2026:**
+1. Expanded extractSkills to 80+ technologies with common variations
+2. Implemented skill aliases mapping (k8s→kubernetes, node.js→nodejs, etc.)
+3. Two-tier matching: exact-match-on-normalized first, then fuzzy at >0.6 threshold
+4. Fixed frontend component to read correct `skill_gaps` field from backend
+5. Created detailed documentation in SKILL_MATCHING_IMPROVEMENTS.md
+
+**Status:** ✅ RESOLVED - Matching accuracy improved significantly
 
 ### Issue: TypeScript Compilation with Constants
 **Date:** March 2026

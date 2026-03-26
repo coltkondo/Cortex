@@ -12,6 +12,9 @@ export class Resume {
   content!: string;
 
   @Column({ type: 'text', nullable: true })
+  latexContent?: string;
+
+  @Column({ type: 'text', nullable: true })
   experienceSection?: string;
 
   @Column({ type: 'text', nullable: true })

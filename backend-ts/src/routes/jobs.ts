@@ -2,6 +2,7 @@ import express from 'express';
 import { AppDataSource } from '../config/database';
 import { Job } from '../models/Job';
 import { fetchJobDescriptionFromURL } from '../utils/urlFetcher';
+import { formatJobDescription } from '../services/claude/jobDescriptionFormatter';
 import { generalRateLimiter } from '../config/rateLimiting';
 
 const router = express.Router();
@@ -22,6 +23,22 @@ router.post('/fetch-from-url', async (req, res) => {
     res.json(jobData);
   } catch (error: any) {
     res.status(400).json({ detail: error.message });
+  }
+});
+
+// Format job description with AI parsing
+router.post('/format-description', async (req, res) => {
+  try {
+    const { description, company, role } = req.body;
+
+    if (!description || description.trim().length === 0) {
+      return res.status(400).json({ detail: 'Job description is required' });
+    }
+
+    const formatted = await formatJobDescription(description, company, role);
+    res.json(formatted);
+  } catch (error: any) {
+    res.status(500).json({ detail: error.message });
   }
 });
 

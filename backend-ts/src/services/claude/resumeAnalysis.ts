@@ -1,4 +1,5 @@
 import { ai, MODEL, MAX_TOKENS } from './client';
+import { refineJsonFields } from '../refining/stopSlopRefiner';
 
 export interface ResumeAnalysis {
   overallScore: number; // 0-100
@@ -65,11 +66,21 @@ ANALYSIS CRITERIA:
 
 5. **Keyword Suggestions**: Industry-standard terms, technical skills, certifications that would improve ATS pass-through
 
-6. **Bullet Improvements**: Take actual bullets from the resume and rewrite them using:
-   - Action verbs (Led, Designed, Achieved, etc.)
-   - Quantifiable results (%, $, time saved, etc.)
-   - STAR method (Situation, Task, Action, Result)
-   - Clear impact and scope
+6. **Bullet Improvements**: Take actual bullets from the resume and rewrite them using the STAR method (Situation, Task, Action, Result):
+   - **Situation/Task**: Briefly describe the problem, challenge, or context (what was needed?)
+   - **Action**: Specific actions you took (built, designed, optimized, automated, etc.)
+   - **Result**: Quantifiable impact (%, time saved, $, scale, users impacted, etc.)
+   - CRITICAL: Every improved bullet MUST include a concrete metric (percentage, dollars, time, or scale)
+   - Use strong action verbs (Engineered, Architected, Optimized, Automated, Deployed, etc.)
+   - Lead with the action verb when possible
+   - Keep to 1-2 lines max
+
+Example transformations:
+- Weak: "Responsible for testing software"
+- Strong: "Designed and automated test suite for 10+ modules reducing defect escape rate by 20%"
+
+- Weak: "Worked on database optimization"
+- Strong: "Diagnosed database bottleneck; implemented indexing and query optimization reducing query time by 40% and supporting 50K concurrent users"
 
 7. **Skills Gap**: Based on the resume's industry/role, identify:
    - **Missing**: High-demand skills not currently mentioned
@@ -114,7 +125,18 @@ Be specific, actionable, and focused on helping the candidate stand out. Use pro
       analysis.skillsGap.missing = Array.isArray(analysis.skillsGap.missing) ? analysis.skillsGap.missing.slice(0, 5) : [];
       analysis.skillsGap.trending = Array.isArray(analysis.skillsGap.trending) ? analysis.skillsGap.trending.slice(0, 5) : [];
 
-      return analysis;
+      // Apply stop-slop refinement to remove AI tells
+      return refineJsonFields(analysis, [
+        'strengths',
+        'weaknesses',
+        'keywordSuggestions',
+        'bulletImprovements',
+        'original',
+        'improved',
+        'reason',
+        'missing',
+        'trending',
+      ]);
     } catch (parseError: any) {
       console.error('JSON parsing error:', parseError.message);
       console.error('Response content:', content.substring(0, 500));

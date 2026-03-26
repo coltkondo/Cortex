@@ -21,17 +21,9 @@ function MissingKeywordsSection({ jobId }) {
       const fitScoreAnalysis = await analysisService.analyzeFit(jobId)
 
       // Extract missing keywords from fit score analysis
-      // Adjust based on actual API response structure
-      setKeywords(fitScoreAnalysis?.missing_skills || [
-        'React',
-        'TypeScript',
-        'AWS',
-        'GraphQL',
-        'Docker',
-        'Kubernetes',
-        'CI/CD',
-        'Microservices',
-      ])
+      // Backend returns skill_gaps which are the missing skills
+      const missingSkills = fitScoreAnalysis?.skill_gaps || []
+      setKeywords(missingSkills)
     } catch (err) {
       setError('Failed to load keywords')
     } finally {
